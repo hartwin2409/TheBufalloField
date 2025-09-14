@@ -29,7 +29,7 @@ The following diagram shows the curve of the strong nuclear force Freid between 
 
 ![Logo](./assets/Fbufallo_vs_Freid.png)
 
-##The Bufallo Booster
+## The Bufallo Booster
 
 Knowing about the Bufallo field means looking for a way to manipulate it.
 The Bufallo field offers the possibility of initiating thrust and repelling oneself from it, thereby building a motor that can convert energy into thrust without propellants — a Bufallo Booster® (patent pending).
@@ -40,8 +40,6 @@ The neutron should remain relatively stationary due to its inertia, while the pr
 
 ![Logo](./assets/NeutronProtonThruster.png)
 
-
-Translated with DeepL.com (free version)
 
 ## Installation
 If github is already installed, open a command line window and 

@@ -401,18 +401,6 @@ public:
 	}
 
 
-	//inline double CouplingFactorB_RadRad( // return coupling factor of nucleon B
-	//	double radiusA,                   // radius of the shielding nucleon A
-	//	double radiusB                    // radius of nucleon B
-	//){
-	//	double pdA = ProbabilityDensity( radiusA);
-	//	double pdB = ProbabilityDensity( radiusB);
-	//	if( pdB == 0)
-	//		return 0; // avoid denominator of 0
-	//	return pdB / ( pdA + pdB);
-	//}
-
-
 	inline double CouplingFactorB_RadProb( // return coupling factor of nucleon B
 		double radiusA,                    // radius of the shielding nucleon A
 		double probB                       // prbability density of nucleon B
@@ -491,8 +479,7 @@ public:
 
 		areaTimeDelta     = sar.AnalyticalFaceAreaDelta();               // in [ m^2]
 		bufalloConstant   = gravForce / ( areaTimeDelta * massPressure); // in N/(m^2 * J / m^3) = N / ( N m / m) = 1
-		double tfad       = sar.TimelyFaceAreaDelta();                   // in [ m^2]
-		double bufalloFrequencyTfad = gravForce / ( tfad * massPressure); // in N / ( m^2 * J / m^3) = N / ( m * N / m) = 1
+//		double tfad       = sar.TimelyFaceAreaDelta();                   // in [ m^2]
 
 		bufalloFieldPressure =  gravForce / areaTimeDelta;               // in [N/m^2]
 
@@ -740,7 +727,7 @@ void StrongForces(){
 			<< -fineForce                     << ";"
 			<<  reidRepel                     << ";"
 			<<  reidAttrac                    << ";"
-			<<  fineForce + reidRepel         << std::endl;
+			<< -fineForce + reidRepel         << std::endl;
 	}
 	out.close();
 	std::cout << "\n";
