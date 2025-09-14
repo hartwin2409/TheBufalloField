@@ -1,17 +1,35 @@
 # The Bufallo Field
 This repository contains documentation and software related to the Bufallo Field.
 
-The Bufallo field is a strong momentum field which embeds all massive particles.
+The Bufallo field is a strong momentum field that encompasses all massive particles.
 The strong nuclear force and the gravitational force can be derived from it.
 
+
 ## Key words
-quantum gravity, Strong nuclear force, Bufallo Field, Bufallo, Bufallo Booster, Reid profile, Schwarzschild metric,
+Quantum gravity, strong nuclear force, Bufallo Field, Bufallo, Bufallo Booster, Reid profile, Schwarzschild metric,
 
 ## Description
 The document 'The Bufallo Field.pdf' explain how to derive the gravitational and strong nuclear forces from the Bufallo Field, a strong momentum field.
-The software provides a function to calculate the strong nuclear forces between two neutrons and recalculates the Reid profile
+
+The massive particles are energy clouds and can be approximated by cubes of constant energy density. The energy clouds are under strong pressure from the Bufallo field. In a gravitational field, the proper time of the areas further away from the center of gravity passes more quickly. Therefore, the pressure on this side is slightly greater. See the following sketch of a volume V with constant energy denity.
+
+
+![Logo](./assets/BufalloForcesAtCube.png)
+
+From the Schwarzschild metric, the difference in proper time across the volume V and the following formula for gravitational force and Bufallo pressures can be derived.
+
+![Logo](./assets/FgravFbufalloFormulas.png)
+
+The software in the subfolder './soft/BufalloField/' provides a function to calculate the strong nuclear forces between two neutrons and recalculates the Reid profile.
+There is already a calculated file './soft/BufalloField/StrongForces.csv' that can be imported into Excel or other spreadsheets.
+Libre Office user can use the file  './soft/BufalloField/StrongForces.ods'
+ 
+
+The following diagram shows the curve of the strong nuclear force between two neutrons relative to their distance from each other, as well as the curve recalculated from the Bufallo field. 
+
+![Logo](./assets/Fbufallo_vs_Freid.png)
 
 ## Installation
-If github is already installed...
-In command line window type: 
+If github is already installed, open a command line window and 
+enter the following: 
   git clone https://github.com/hartwin2409/TheBufalloField

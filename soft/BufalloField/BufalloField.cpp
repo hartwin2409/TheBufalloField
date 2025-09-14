@@ -1,22 +1,5 @@
 ﻿/*
-   A sphere in a gravitational field gets curved due to space time curvature.
-   
-   To calculate the effective force of the bufallo field on a curved sphere one
-   approximates the sphere volume by rods parallel to each other and pointing 
-   into the direction of the curvature centre.
-
-	The rods itself gets curved so the face1 area of each rod pointing to
-	the curvature centre is smaller than the other face2 area.
-	
-	The longer the rod the greater the difference between face area 1 and 2.
-	
-	The difference of the faces areas normalized to the mean face area 
-	is the aspect ratio of the rod.
-	
-	The sum of all face areas 1 minus the sum of all face areas 2 normalized to
-	the cross section of the sphere is the aspect ratio of the sphere.
-	
-	The old calculations use cones instead of rods.
+   Calculates the strong forces between two neutrons.
 */
 
 // std
@@ -32,6 +15,10 @@ namespace fs = std::filesystem;
 #include <assert.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
+#define HAVE_OMP
+#ifdef HAVE_OMP
+#include <omp.h>
+#endif
 
 namespace physics{
 	constexpr double femtoMeter             = 1e-15;                // [m]
@@ -70,15 +57,8 @@ namespace physics{
 
 		Vreid( r) = [ -10.463 * exp( -m * r) - 1650.6 * exp( -4 * m * r) + 6484.2 * exp(-7 * m * r) ] / ( m * r)
 
-		r : distance between the two nucleii
+		r : distance between the two nucleii from center to center
 		m : 0.7 /  fm
-
-		The nuclear force is powerfully attractive between nucleons at distances of about
-		1 femtometre (fm, or 1.0 × 10−15 metres), but it rapidly decreases to insignificance
-		at distances beyond about 2.5 fm.
-		At distances less than 0.7 fm, the nuclear force becomes repulsive.
-		This repulsive component is responsible for the physical size of nuclei,
-		since the nucleons can come no closer than the force allows. 
 		*/
 
 		/**
@@ -105,9 +85,7 @@ namespace physics{
 			return g * ( _radius * a  - 1 / m) * exp( a * m * _radius) / ( _radius * _radius);
 		}
 
-		/**
-		Potential of strong nuclear force in [MeV]
-		*/
+		// Potential of strong nuclear force in [MeV]
 		static double PotentialMeV(
 			_In_ double _radius    ///< distance between two nucleii
 		){
@@ -118,27 +96,16 @@ namespace physics{
 			return result2;
 		}
 
-		/**
-		Potential of strong nuclear force in [J]
-		*/
+		//Potential of strong nuclear force in [J]
 		static double Potential(
 			_In_ double _radius    ///< distance between two nucleii
 		){
 			return PotentialMeV( _radius) / physics::MeV;
 		}
-		/**
-		Strong nuclear force between two nucleons like neutron or proton in [N]
-		Neutron1                 Neutron2
-		. x x x                    x x x   
-		x       x                x       x 
-		x   +   x                x   +   x 
-		x       x                x       x 
-		. x x x                    x x x   
-		.   |                        |
-		.   +- - - distance - - - - -+
-		*/
+
+		//Strong nuclear force between two nucleons like neutron or proton in [N]
 		static double StrongNuclearForce(
-			double _radius               // distance between two nucleii
+			double _radius               // distance between two nucleii from center to center
 		){
 			if( _radius < -0.01 * physics::femtoMeter)
 				return NAN;
@@ -169,42 +136,6 @@ namespace physics{
 				- HelperDeviationFct(  6484.2,  -7, _radius);
 			return mev * MeV;
 		}
-
-		static double GetMaximumForce(){
-			double start = 0.5 * physics::femtoMeter;
-			double delta = 0.1 * physics::femtoMeter;
-
-			double f0 = 0;
-			double f1 = 0;
-
-			do{
-				double d0    = start;
-				double d1    = d0 + delta;
-
-				f0 = StrongNuclearForce( d0);
-				f1 = StrongNuclearForce( d1);
-
-				do{
-					double d2 = d1 + delta;
-					double f2 = StrongNuclearForce( d2);
-
-					if( f0 <= f1 && f2 <= f1){
-						break;
-					}
-					d0 = d1; f0 = f1;
-					d1 = d2; f1 = f2;
-
-					if( d2 > 2){
-						throw  std::runtime_error( " reid potential maximum force failed");
-					}
-				} while( 1);
-
-				delta /= 10;
-				start = d0;
-			} while( fabs( delta) >= 0.01 * physics::femtoMeter);
-			return f1;
-		}
-
 	}
 }
 
@@ -470,16 +401,16 @@ public:
 	}
 
 
-	inline double CouplingFactorB_RadRad( // return coupling factor of nucleon B
-		double radiusA,                   // radius of the shielding nucleon A
-		double radiusB                    // radius of nucleon B
-	){
-		double pdA = ProbabilityDensity( radiusA);
-		double pdB = ProbabilityDensity( radiusB);
-		if( pdB == 0)
-			return 0; // avoid denominator of 0
-		return pdB / ( pdA + pdB);
-	}
+	//inline double CouplingFactorB_RadRad( // return coupling factor of nucleon B
+	//	double radiusA,                   // radius of the shielding nucleon A
+	//	double radiusB                    // radius of nucleon B
+	//){
+	//	double pdA = ProbabilityDensity( radiusA);
+	//	double pdB = ProbabilityDensity( radiusB);
+	//	if( pdB == 0)
+	//		return 0; // avoid denominator of 0
+	//	return pdB / ( pdA + pdB);
+	//}
 
 
 	inline double CouplingFactorB_RadProb( // return coupling factor of nucleon B
@@ -792,23 +723,24 @@ void StrongForces(){
 
 	std::string filename = "StrongForces.csv";
 	std::ofstream out( filename);
-	out << "Distance[fm];Reid;Hard;Fine;ReidRepel;ReidAttrac" << std::endl;
+	out << "Distance[fm];Reid;Hard;Fine;ReidRepel*0.55;ReidAttrac;Fbufallo" << std::endl;
 	for( double distance = 0.025 * fm; distance < 4.0 * fm; distance += 0.025 * fm){
 
 		ProgressOutputToTerminal( distance);
 
-		double reid            = physics::ReidPotential::StrongNuclearForce( distance);
-		double hardSphereForce = hardSphere.StrongForce( distance);
-		double cartFineForce   = cartFine.StrongForce( distance);
-		double reidRepel       = physics::ReidPotential::StrongNuclearForceRepellingPart( distance);
-		double reidAttrac      = physics::ReidPotential::StrongNuclearForceAttractivePart( distance);
+		double reid        = physics::ReidPotential::StrongNuclearForce( distance);
+		double hardForce   = hardSphere.StrongForce( distance);
+		double fineForce   = cartFine.StrongForce( distance);
+		double reidRepel   = 0.55 * physics::ReidPotential::StrongNuclearForceRepellingPart( distance);
+		double reidAttrac  = physics::ReidPotential::StrongNuclearForceAttractivePart( distance);
 		out
 			<< distance / physics::femtoMeter << ";"
-			<<  reid               << ";"
-			<< -hardSphereForce    << ";"
-			<< -cartFineForce      << ";"
-			<<  reidRepel          << ";"
-			<<  reidAttrac         << std::endl;
+			<<  reid                          << ";"
+			<< -hardForce                     << ";"
+			<< -fineForce                     << ";"
+			<<  reidRepel                     << ";"
+			<<  reidAttrac                    << ";"
+			<<  fineForce + reidRepel         << std::endl;
 	}
 	out.close();
 	std::cout << "\n";
@@ -819,4 +751,3 @@ void StrongForces(){
 int main(){
 	StrongForces();
 }
-

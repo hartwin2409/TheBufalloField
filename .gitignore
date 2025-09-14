@@ -1,0 +1,8 @@
+.vs/
+_build/
+*.log
+*.tmp
+*.bak
+*.user
+*.pdb
+'.exe
