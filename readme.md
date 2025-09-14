@@ -9,7 +9,7 @@ The strong nuclear force and the gravitational force can be derived from it.
 Quantum gravity, strong nuclear force, Bufallo Field, Bufallo, Bufallo Booster, Reid profile, Schwarzschild metric,
 
 ## Description
-The document 'The Bufallo Field.pdf' explain how to derive the gravitational and strong nuclear forces from the Bufallo Field, a strong momentum field.
+The document 'The Bufallo Field.pdf' explains how to derive the gravitational and strong nuclear forces from the Bufallo Field, a strong momentum field.
 
 The massive particles are energy clouds and can be approximated by cubes of constant energy density. The energy clouds are under strong pressure from the Bufallo field. In a gravitational field, the proper time of the areas further away from the center of gravity passes more quickly. Therefore, the pressure on this side is slightly greater. See the following sketch of a volume V with constant energy denity.
 
