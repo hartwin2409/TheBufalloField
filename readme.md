@@ -46,3 +46,13 @@ If github is already installed, open a command line window and
 enter the following:
 
   git clone https://github.com/hartwin2409/TheBufalloField
+  
+## ❓ Questions & Support
+
+If you have any questions or need assistance, there are several options available:
+
+- 📌 **Issues**
+Report bugs or ask specific questions directly in the [Issue Tracker](https://github.com/hartwin2409/TheBufalloField/issues).
+
+- 💬 **Discussions**  
+  For general inquiries, ideas, or to chat with other users, please use the [discussion forum](https://github.com/hartwin2409/TheBufalloField/discussions).
