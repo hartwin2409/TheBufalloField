@@ -53,7 +53,10 @@ namespace gaussian{
 	// gaussian function of f(x) = ( 1 / A) * exp( - 0.5 * ( ( radius) / radius)**2)
 	// with
 	//      A =  1 / ( radius **3 * pow( 2 * M_PI, 3/2))
-	inline double Distribution3D( double radius, double sigma = 1.0){
+	inline double Distribution3D( // in [ 1 / m^3]
+		double radius,            // radial distance in [m]
+		double sigma = 1.0        // radial standard deviation in [m]
+	){
 		//double meanX = meanY = meanZ = 0.0;
 		double A = 1 / ( sigma * sigma * sigma * pow( 2 * M_PI, 3.0 / 2.0));
 		double f = ( radius * radius) / ( sigma * sigma);

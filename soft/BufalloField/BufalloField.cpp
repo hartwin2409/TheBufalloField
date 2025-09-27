@@ -46,101 +46,11 @@ namespace physics{
 		constexpr double mass           = 1.67492749804e-27;    // [kg]
 		constexpr double radius          = 1.6e-15 / 2;          // [m] see: https://en.wikipedia.org/wiki/Neutron
 	}
-
-
-	namespace ReidPotential{
-
-		constexpr double m =  0.7 / physics::femtoMeter;
-
-		/*
-		model of strong nuclear force 1968 see https://en.wikipedia.org/wiki/Nuclear_force
-
-		Vreid( r) = [ -10.463 * exp( -m * r) - 1650.6 * exp( -4 * m * r) + 6484.2 * exp(-7 * m * r) ] / ( m * r)
-
-		r : distance between the two nucleii from center to center
-		m : 0.7 /  fm
-		*/
-
-		/**
-		Helper function Hf(g, a, r)
-
-		f(r) = g * exp( a * m * r) / ( m * r)
-		*/
-		static double HelperFct( double g, double a, double _radius){
-			return g *  exp( a * m * _radius) / ( m * _radius);
-		}
-
-		/**
-		f(r)' = ( g * exp( a * m * r) / ( m * r))'
-		= g * [ ( a * m) * exp( a * m * r) / ( m * r) + exp( a * m * r)( -1 / ( m * r * r)]
-		= g * [ ( a * m)                   / ( m * r) +                ( -1 / ( m * r * r)] * exp( a * m * r)
-		= g * [ ( a * m * r) / ( m * r * r) - 1 / ( m * r * r)] * exp( a * m * r)
-		= g * [ ( a * m * r) / m            - 1 /   m         ] * exp( a * m * r) / ( r * r)
-		= g * [   a * r     - 1 /  m         ] * exp( a * m * r) / ( r * r)
-		f'(r) = g *( r* a   - 1/m) exp( a * m * r) / ( r * r)
-		*/
-		static double HelperDeviationFct( double g, double a,
-			_In_ double _radius     ///< distance between two nucleii
-		){
-			return g * ( _radius * a  - 1 / m) * exp( a * m * _radius) / ( _radius * _radius);
-		}
-
-		// Potential of strong nuclear force in [MeV]
-		static double PotentialMeV(
-			_In_ double _radius    ///< distance between two nucleii
-		){
-			double result2 =
-				+ HelperFct( -10.463, -1, _radius)
-				+ HelperFct( -1650.6, -4, _radius)
-				+ HelperFct(  6484.2, -7, _radius);
-			return result2;
-		}
-
-		//Potential of strong nuclear force in [J]
-		static double Potential(
-			_In_ double _radius    ///< distance between two nucleii
-		){
-			return PotentialMeV( _radius) / physics::MeV;
-		}
-
-		//Strong nuclear force between two nucleons like neutron or proton in [N]
-		static double StrongNuclearForce(
-			double _radius               // distance between two nucleii from center to center
-		){
-			if( _radius < -0.01 * physics::femtoMeter)
-				return NAN;
-			double mev =
-				- HelperDeviationFct( -10.463,  -1, _radius)
-				- HelperDeviationFct( -1650.6,  -4, _radius)
-				- HelperDeviationFct(  6484.2,  -7, _radius);
-			return mev * MeV;
-		}
-
-		static double StrongNuclearForceAttractivePart(
-			double _radius               // distance between two nucleii
-		){
-			if( _radius < -0.01 * physics::femtoMeter)
-				return NAN;
-			double mev =
-				- HelperDeviationFct( -10.463,  -1, _radius)
-				- HelperDeviationFct( -1650.6,  -4, _radius);
-			return mev * MeV;
-		}
-
-		static double StrongNuclearForceRepellingPart(
-			double _radius               // distance between two nucleii
-		){
-			if( _radius < -0.01 * physics::femtoMeter)
-				return NAN;
-			double mev =
-				- HelperDeviationFct(  6484.2,  -7, _radius);
-			return mev * MeV;
-		}
-	}
 }
 
 #include "Distribution.h"
 #include "geom.h"
+#include "ReidPotential.h"
 
 
 class Schwarzschildmetrik{
@@ -157,21 +67,6 @@ public:
 		radiusSchwarzschild = 2.0 * physics::gravitationConstant * centralMass / ( physics::lightVelocity * physics::lightVelocity); // Schwarzschildradius in [m]
 	}
 
-	double ProperTimeDifference(  // [1]
-		double deltaRadius                                  // [m]   symmetrical to distanceNN
-	){
-		// timely curvature
-		double dr_2 = deltaRadius / 2.0;
-		double diff = 1.0 / ( distanceNN - dr_2) - 1.0 / ( distanceNN + dr_2);  // in [1/m]
-		return (radiusSchwarzschild / 2.0) * diff;                              // in [ m * 1/m] = [1]
-	}
-
-
-	inline double Radius(){
-		return radiusSchwarzschild;
-	}
-
-
 	// returns the difference of time1 and time2 separated spatially by delta radius in [1]
 	//    t2/t1 = ProperTimeRatio(dr) = 1 + f(dr)     with t2 = t1 + eps
 	//    1 + eps/t1 = 1 + f(dr)
@@ -183,21 +78,6 @@ public:
 		double rad1 =  distanceNN - dr_2;
 		double rad2 =  distanceNN + dr_2;
 		return radiusSchwarzschild * 0.5 * ( 1 / rad1 - 1 / rad2);
-	}
-
-	double ProperTimeRatioFraction2(  // [1]
-		double deltaRadius          // [m]  symmetrical to distanceNN
-	){
-		double dr_2 = deltaRadius / 2.0;
-		double rad1 = distanceNN - dr_2;
-		double rad2 = distanceNN + dr_2;
-		double timeRatioExact = sqrt( ( 1 - radiusSchwarzschild/ rad2)/( 1 - radiusSchwarzschild/ rad1));
-		double eps = radiusSchwarzschild * ( 1 - rad1 / rad2) / ( rad1 - radiusSchwarzschild);
-		double exact = sqrt( 1 + eps);
-		double p1  = eps / 2;
-		double p2  = - eps * eps / 8.0;
-		double p3  = - eps * eps *eps / 16.0;
-		return p1 + p2 + p3;
 	}
 };
 
@@ -222,11 +102,6 @@ public:
 
 	double Curvature(){
 		return 1 / radiusOfCurvature;
-	}
-
-
-	double RingArea( double innerRadius, double outerRadius){
-		return geom::circle::Area( outerRadius) - geom::circle::Area( innerRadius);
 	}
 
 
@@ -318,46 +193,21 @@ public:
 
 			double H                 = sqrt( radSphere2 - r * r);            // half height of cone in x-direction
 			double timeRatioFraction = ssm.ProperTimeRatioFraction( H * 2);  // in [1]
-			double _fRA              = RingArea( r1, r2);                    // area of the ring
+			double _fRA              = geom::RingArea( r1, r2);              // area of the ring
 			deltaArea               += _fRA * timeRatioFraction;             // time dilation recalculated as area difference in [m^2 * s]
 		}
 		return deltaArea;
 	}
 
 
-	// new aspect ratio calculation, sphere is approximated by rods
-	double AnalyticalFaceAreaDelta(){ // return in [ m^2]
-		// Bowl radius	:   r
-		// Bowl volume	:   Vb = 4 * π * r^3/ 3
-		// Bowl cross area	:   Ab  =  π * r^2
+	double AnalyticalFaceAreaDelta() const{ // return in [ m^2]
 
-		// Approximate bowl volume  by rods pointing into the direction of space curvature centre.
-
-		// Rod:
-		// Length     :   Li
-		// Rod volume :   Vr= Li * Δs
-		// Count      :   n
-		// Face-Area  :   Δs = Ab / n
-
-		// The face of the rod pointing into the direction of space curvature centre is smaller than the other because of the curvature:
-
-		// Curvature factor	: f
-		// Face-Area-Delta 	: εi = f * Li * Δs
-
-		double _f  = 1.0 / radiusOfCurvature; // in [1 / m] ??? must be [ s / m]
-
-		// Sum of all Face-Area-Deltas = Space curvature of bowl
-
-		//	Sum( εi)  = Sum( f * Li * Δs)
-		//			  = f * Sum( Vr)
-		//			  = f * Vb
-		//			  = f * 4 * π * r^3 / 3	
+		double _f  = 1.0 / radiusOfCurvature; // in [1 / m]
 		double _result = _f * geom::sphere::Volume( radiusOfSphere);
 		return _result;
 	}
 
 };
-
 
 
 class RadialPoint{
@@ -522,9 +372,8 @@ public:
 	double distanceNN           = nucleonRadius * 100;  // distance between two nucleons
 	int    numSteps             = 250;                  // number of steps in grid range
 	double step                 = maxXYZ / numSteps;    // cartesian grid step
-	double bufalloPressure      = 0.0;                  // in [N/m^2]
-	double timeAreaDelta        = 0.0;                  // in [m^2]
 	double bufalloConstant      = 0.0;                  // in [1]
+	double gravForceBufallo     = 0.0;                  // gravitational force from Bufallo forces in [N]
 
 
 	BufalloNucleonCartesian( std::string _name, distribution::Base& _distrib)
@@ -542,33 +391,43 @@ public:
 		*/
 		double pressureEnergy = PressureEnergy();
 
-		timeAreaDelta   = TimeAreaDelta();                                // in [m^2]
-		bufalloConstant = gravForce / ( timeAreaDelta * pressureEnergy);  // in N / ( m^2  * J/m^3) = N / ( m^2  * N * m / m^3) = 1
-		bufalloPressure = gravForce / timeAreaDelta;                      // in N / m^2
+		gravForceBufallo = x_GravitationalForce();
+		bufalloConstant = gravForce / gravForceBufallo;  // in N / ( m^2  * J/m^3) = N / ( m^2  * N * m / m^3) = 1
 
 		// debug
 		assert( fabs( pressureEnergy / massEnergy - 1) < 0.01);
 	}
 
 
-	// Returns the time area delta in [ m^2]
-	double TimeAreaDelta(){
-		// sample quarter: octant of +x and -x
+	/**
+	Calculate the difference of times of a 3d-energy distribution
+	The 3D-energy distribution is approximated by infinitesimal volumes
+	*/
+	double GravitationalForce( // return in [ N]
+	) const{
+		return gravForceBufallo;
+	}
+
+
+	/**
+	Calculate the difference of times of a 3d-energy distribution
+	The 3D-energy distribution is approximated by infinitesimal volumes
+	*/
+	double x_GravitationalForce( // return in [ N]
+	){
+		// sample quarter: ( -x...+x, 0...+y, 0...+z)
 		// Assume space curvature center in  negative x - direction
 		// only the gradient in x direction is considered, because of symmetry reasons the forces in z and y direction cancel out
 		// calculate the weighted volume difference between the left (-x) and right(+x) side of the nucleon
-		double sumAreaDelta        = 0;
+		double gravForce           = 0;
 		double maxRadius2          = maxXYZ * maxXYZ;
 		double infArea             = step * step;              // area of a single side of the infinitesimal volume
 		double infVol              = infArea * step;           // in [m^3]
 		Schwarzschildmetrik ssm    = { distanceNN, centralMass};
-
-		// omp parallel for collapse(3) - combines the three loops (zi, yi, xi) into a single iteration domain
-		// reduction(+:sumAreaDelta)    - makes sure that every thread has its own local copy sumAreaDelta, which are combined at the end
-		// schedule(dynamic)            -  can help to balance load imbalances caused by inner conditions  (if(radius2 <= maxRadius2)), else schedule(static).
-		//#pragma omp parallel for collapse(3) reduction(+:sumForce) schedule(dynamic)
+		double infTimeAreaDelta    =  ssm.ProperTimeRatioFraction( step); // in [1]
+		double fact                = infTimeAreaDelta * infArea * massEnergy; // in [ 1 * m^2 * N m]
 #ifdef HAVE_OMP
-#pragma omp parallel for reduction(+:sumAreaDelta)
+#pragma omp parallel for reduction(+:gravForce)
 #endif
 		for( int zi = 0; zi <= numSteps; zi++){
 			double z = (zi + 0.5) * step;
@@ -576,29 +435,21 @@ public:
 			for( int yi = 0; yi <= numSteps; yi++){
 				double y = ( yi + 0.5) * step;
 				double _radZY2 = radZ2 + y * y;
-				for( int xi = 0; xi <= numSteps; xi++){
+				for( int xi = -numSteps; xi <= numSteps; xi++){
 					double x  = (xi + 0.5) * step;
-					double x2 = x + step;
 					double radius2 = _radZY2 + x * x;
 					if( radius2 <= maxRadius2){
-						double radiusP1 = sqrt( radius2);                 // radius of position 1 to calculate the gradient
-						double radiusP2 = sqrt( _radZY2 + x2 * x2);       // radius of position 2 to calculate the gradient
-						double pdA      = distrib.Distribution( radiusP1);
-						double pdB      = distrib.Distribution( radiusP2);
-						double pdDelta  = ( - pdB + pdA) * SIGN(x);                           // negative Gradient in [ 1 / m^3]
-						double deltaX   = x + step/2;
-						double tad      = ssm.ProperTimeRatioFraction( deltaX * 2) * infArea; // time area delta in [m^2]
-
-						sumAreaDelta += pdDelta * tad; // in [ 1 *  m^2] = [ m^2]
+						double radius  = sqrt( radius2);                // radius of infinitesimal volume
+						double pd      = distrib.Distribution( radius); // probability density at point A in  [1/m^3]
+						gravForce += fact *  pd; // in [ 1 * m^2 * N m] * [1/m^3] = [ N]
 					}
 				}
 			}
 		}
-		return sumAreaDelta;
+		gravForce     *= 4 ; // in [N], *4 because only the quadrant(-x...+x,0...+y,0...+z) has been sampled
+		return gravForce;
 	}
 
-
-	inline int GetSteps(){ return numSteps;}
 
 
 	double StrongForce(

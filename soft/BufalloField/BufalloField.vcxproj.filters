@@ -20,9 +20,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\_src\SphereAspectRatio.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="..\_src\ReidPotential.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>

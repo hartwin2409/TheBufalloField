@@ -101,7 +101,6 @@
     <ClInclude Include="..\_src\ReidPotential.h" />
     <ClInclude Include="..\_src\SchwarzschildMetric.h" />
     <ClInclude Include="..\_src\sphere.h" />
-    <ClInclude Include="..\_src\SphereAspectRatio.h" />
     <ClInclude Include="..\_src\Vec3.h" />
     <ClInclude Include="..\_src\YukawaPotential.h" />
     <ClInclude Include="Distribution.h" />

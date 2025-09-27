@@ -46,6 +46,12 @@ namespace geom{
 
 	}
 
+
+	static inline double RingArea( double innerRadius, double outerRadius){
+		return geom::circle::Area( outerRadius) - geom::circle::Area( innerRadius);
+	}
+
+
 	namespace sphere{
 		static inline double Volume(  double radius){
 			return 4 * M_PI * radius * radius * radius / 3.0;

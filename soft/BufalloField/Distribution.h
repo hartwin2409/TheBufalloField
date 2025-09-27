@@ -39,12 +39,14 @@ namespace distribution{
 		{}
 
 
-		inline double Distribution( double radius) override{
+		inline double Distribution(   // probability density in  [1/m^3]
+			double radius             // radial distance in [m]
+		) override{
 			return gaussian::Distribution3D( radius, sigma);
 		};
 
 
-		double Distribution( double x, double y, double z) override{
+		double Distribution( double x, double y, double z) override{ // in  [ 1 / m^3]
 			return gaussian::Distribution3D( x, y, z, sigma);
 		};
 
