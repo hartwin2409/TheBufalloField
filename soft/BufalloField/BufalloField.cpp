@@ -489,7 +489,6 @@ public:
 						double pd1      = distrib.Distribution( radiusP1);
 						double pd2      = distrib.Distribution( radiusP2);
 						double pdDelta  = - pd2 + pd1;                      // negative difference at infinitesimal volume in [ 1 / m^3]
-						double radiusB  = sqrt( radius2);                   // radius to center of nucleon B
 						double diffX    = distance + x;
 						double radiusA  = sqrt( _radZY2 + diffX * diffX);   // radius to center of nucleon A
 
